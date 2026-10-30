@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Campo em foco: borda escura. Normal/desabilitado: borda cinza clara -->
+    <item android:color="@color/texto_principal" android:state_focused="true" />
+    <item android:color="@color/borda" />
+</selector>

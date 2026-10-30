@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- checkableBehavior="single": só um item fica marcado por vez -->
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_inicio"
+            android:icon="@drawable/ic_inicio"
+            android:title="Início" />
+        <item
+            android:id="@+id/nav_nova_reserva"
+            android:icon="@drawable/ic_nova_reserva"
+            android:title="Nova reserva" />
+        <item
+            android:id="@+id/nav_minhas_reservas"
+            android:icon="@drawable/ic_minhas_reservas"
+            android:title="Minhas reservas" />
+    </group>
+</menu>

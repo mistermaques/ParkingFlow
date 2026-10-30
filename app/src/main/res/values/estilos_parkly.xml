@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Estilo padrão dos campos de texto (caixa com borda, igual ao web) -->
+    <style name="Parkly.Campo" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/campo_borda</item>
+        <item name="boxBackgroundColor">@color/white</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="hintEnabled">false</item>
+        <item name="helperTextTextColor">@color/texto_secundario</item>
+        <item name="endIconTint">@color/texto_principal</item>
+        <item name="prefixTextColor">@color/texto_secundario</item>
+        <item name="suffixTextColor">@color/texto_secundario</item>
+    </style>
+
+    <!-- Rótulo em cima de cada campo: "Vaga *", "Entrada *"... -->
+    <style name="Parkly.Rotulo" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:textColor">@color/texto_principal</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+</resources>

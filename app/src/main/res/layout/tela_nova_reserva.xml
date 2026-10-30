@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Card "Detalhes da reserva" -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="24dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/borda"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- ===== Cabeçalho do card ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Detalhes da reserva"
+                android:textColor="@color/texto_principal"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="* Obrigatório"
+                android:textColor="@color/texto_secundario"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Informe o período em que a vaga será utilizada."
+            android:textColor="@color/texto_secundario"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/borda" />
+
+        <!-- ===== Campo VAGA (só números) ===== -->
+        <TextView
+            style="@style/Parkly.Rotulo"
+            android:text="Vaga *" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutVaga"
+            style="@style/Parkly.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:endIconMode="dropdown_menu"
+            app:helperText="Escolha uma das vagas disponíveis.">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/campoVaga"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Carregando vagas..."
+                android:inputType="none"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp"
+                android:textColor="@color/texto_principal"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <!-- ===== Campo PLACA ===== -->
+        <TextView
+            style="@style/Parkly.Rotulo"
+            android:layout_marginTop="16dp"
+            android:text="Placa do veículo *" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutPlaca"
+            style="@style/Parkly.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:helperText="Aceita o padrão antigo (ABC-1234) ou Mercosul (ABC1D23).">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoPlaca"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ex: ABC1D23"
+                android:inputType="textCapCharacters|textNoSuggestions"
+                android:maxLength="8"
+                android:textColor="@color/texto_principal"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ===== Campo ENTRADA (abre calendário + relógio) ===== -->
+        <TextView
+            style="@style/Parkly.Rotulo"
+            android:layout_marginTop="16dp"
+            android:text="Entrada *" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutEntrada"
+            style="@style/Parkly.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:endIconDrawable="@drawable/ic_calendario"
+            app:endIconMode="custom">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoEntrada"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:inputType="none"
+                android:textColor="@color/texto_principal"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ===== Campo SAÍDA (abre calendário + relógio) ===== -->
+        <TextView
+            style="@style/Parkly.Rotulo"
+            android:layout_marginTop="16dp"
+            android:text="Saída *" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutSaida"
+            style="@style/Parkly.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:endIconDrawable="@drawable/ic_calendario"
+            app:endIconMode="custom">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoSaida"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:inputType="none"
+                android:textColor="@color/texto_principal"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ===== Campo VALOR (bloqueado por enquanto) ===== -->
+        <TextView
+            style="@style/Parkly.Rotulo"
+            android:layout_marginTop="16dp"
+            android:text="Valor da reserva *" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutValor"
+            style="@style/Parkly.Campo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            app:helperText="Valor por hora informado pela administração da vaga."
+            app:suffixText="/hora"
+            app:prefixText="R$ ">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/campoValor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:inputType="numberDecimal"
+                android:text="0,00"
+                android:textColor="@color/texto_secundario"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/borda" />
+
+        <!-- ===== Rodapé: aviso + botão Continuar ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Seus dados estão seguros"
+                android:textColor="@color/texto_secundario"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnContinuar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="44dp"
+                android:text="Continuar  →"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                app:backgroundTint="@color/botao_fundo"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="40dp"
+    android:paddingBottom="16dp">
+
+    <!-- Quadradinho com o "P" do logo -->
+    <TextView
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="@drawable/bg_logo"
+        android:gravity="center"
+        android:text="P"
+        android:textColor="@color/texto_principal"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="Parking Flow"
+        android:textColor="@color/texto_principal"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

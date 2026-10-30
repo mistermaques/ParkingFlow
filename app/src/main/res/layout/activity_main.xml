@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?><!-- DrawerLayout: permite um menu que desliza da lateral por cima do conteúdo -->
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <!-- 1º filho: o CONTEÚDO da tela -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/fundo_app"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <!-- Barra do topo com a setinha que abre o menu -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            app:navigationContentDescription="Abrir menu"
+            app:navigationIcon="@drawable/ic_seta_menu"
+            app:title="Parking Flow"
+            app:titleTextColor="@color/texto_principal" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/borda" />
+
+        <!-- Arrastar para atualizar: envolve toda a área com rolagem -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeAtualizar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <!-- Rolagem: o formulário é maior que a tela do celular -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollConteudo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/txtSecao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.1"
+                    android:textColor="@color/texto_secundario"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtTituloTela"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/texto_principal"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtSubtitulo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/texto_secundario"
+                    android:textSize="15sp" />
+
+                <!-- Tela Início (arquivo tela_inicio.xml), começa escondida -->
+                <include
+                    android:id="@+id/telaInicio"
+                    layout="@layout/tela_inicio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <!-- Indicador de etapas (arquivo indicador_etapas.xml) -->
+                <include
+                    android:id="@+id/indicadorEtapas"
+                    layout="@layout/indicador_etapas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp" />
+
+                <!-- Etapa 1: formulário (arquivo tela_nova_reserva.xml) -->
+                <include
+                    android:id="@+id/telaNovaReserva"
+                    layout="@layout/tela_nova_reserva"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <!-- Etapa 2: confirmação (arquivo tela_confirmacao.xml), começa escondida -->
+                <include
+                    android:id="@+id/telaConfirmacao"
+                    layout="@layout/tela_confirmacao"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+                <!-- Tela de sucesso (arquivo tela_sucesso.xml), começa escondida -->
+                <include
+                    android:id="@+id/telaSucesso"
+                    layout="@layout/tela_sucesso"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <!-- Minhas reservas: carregamento, mensagem e lista (começa escondida) -->
+                <LinearLayout
+                    android:id="@+id/telaMinhasReservas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <ProgressBar
+                        android:id="@+id/progressReservas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="32dp"
+                        android:indeterminateTint="@color/texto_principal" />
+
+                    <TextView
+                        android:id="@+id/txtReservasMensagem"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:gravity="center"
+                        android:textColor="@color/texto_secundario"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:id="@+id/listaReservas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </LinearLayout>
+
+    <!-- 2º filho: o MENU LATERAL (fica escondido à esquerda) -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="260dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/white"
+        android:fitsSystemWindows="true"
+        app:drawerLayoutCornerSize="0dp"
+        app:headerLayout="@layout/cabecalho_menu"
+        app:itemIconTint="@color/menu_item_texto"
+        app:itemShapeFillColor="@color/menu_item_fundo"
+        app:itemShapeInsetEnd="12dp"
+        app:itemShapeInsetStart="12dp"
+        app:itemTextColor="@color/menu_item_texto"
+        app:menu="@menu/menu_lateral" />
+
+</androidx.drawerlayout.widget.DrawerLayout>
