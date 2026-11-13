@@ -34,4 +34,14 @@
         <item name="android:textColorPrimary">@color/texto_principal</item>
         <item name="android:textColorSecondary">@color/texto_secundario</item>
     </style>
+
+    <!-- Calendário e relógio: sempre claros, com a cor escura do app (mesmo no modo escuro) -->
+    <style name="Parkly.Calendario" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/texto_principal</item>
+        <item name="colorAccent">@color/texto_principal</item>
+        <item name="colorSecondary">@color/texto_principal</item>
+        <item name="android:colorPrimary">@color/texto_principal</item>
+        <item name="android:colorAccent">@color/texto_principal</item>
+        <item name="android:textColorPrimary">@color/texto_principal</item>
+    </style>
 </resources>

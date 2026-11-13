@@ -1,6 +1,15 @@
 package com.example.parkingflow;
 
 import android.os.Bundle;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.webkit.GeolocationPermissions;
+import android.webkit.WebChromeClient;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
+
 import android.view.View;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -30,8 +39,27 @@ public class AjudaActivity extends AppCompatActivity {
     private WebView webAjuda;
     private View progressAjuda, layoutErroAjuda;
 
+    // Endereço que esta tela vai abrir (a Ajuda ou outro enviado por quem abriu)
+    private String urlPagina;
+
+
     // Marca se o carregamento atual deu erro (para não mostrar a página em branco depois)
     private boolean deuErro;
+
+    // Pedido de localização feito pela página, esperando a resposta do usuário
+    private String origemLocalizacao;
+    private GeolocationPermissions.Callback callbackLocalizacao;
+
+    // Janela do Android pedindo permissão de localização; a resposta é repassada para a página
+    private final ActivityResultLauncher<String[]> pedirLocalizacao =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), resultado -> {
+                boolean permitiu = Boolean.TRUE.equals(resultado.get(Manifest.permission.ACCESS_FINE_LOCATION))
+                        || Boolean.TRUE.equals(resultado.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+                if (callbackLocalizacao != null) {
+                    callbackLocalizacao.invoke(origemLocalizacao, permitiu, false);
+                    callbackLocalizacao = null;
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +72,12 @@ public class AjudaActivity extends AppCompatActivity {
         MaterialToolbar toolbar = findViewById(R.id.toolbarAjuda);
         MaterialButton btnTentarNovamente = findViewById(R.id.btnTentarNovamente);
 
+        // Título e endereço enviados por quem abriu a tela (sem nada -> Ajuda)
+        String titulo = getIntent().getStringExtra(EXTRA_TITULO);
+        urlPagina = getIntent().getStringExtra(EXTRA_URL);
+        if (urlPagina == null) urlPagina = URL_AJUDA;
+        if (titulo != null) toolbar.setTitle(titulo);
+
         // Seta de voltar da barra -> fecha a Ajuda e volta para onde estava
         toolbar.setNavigationOnClickListener(v -> finish());
 
@@ -51,6 +85,25 @@ public class AjudaActivity extends AppCompatActivity {
         WebSettings config = webAjuda.getSettings();
         config.setJavaScriptEnabled(true);
         config.setDomStorageEnabled(true);
+
+        config.setGeolocationEnabled(true);
+
+        // A página pediu a localização -> confere a permissão do Android (e pede, se precisar)
+        webAjuda.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origem, GeolocationPermissions.Callback callback) {
+                if (temPermissaoLocalizacao()) {
+                    callback.invoke(origem, true, false);
+                } else {
+                    origemLocalizacao = origem;
+                    callbackLocalizacao = callback;
+                    pedirLocalizacao.launch(new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    });
+                }
+            }
+        });
 
         // Acompanha o carregamento para mostrar a rodinha, a página ou o erro
         webAjuda.setWebViewClient(new WebViewClient() {
@@ -99,13 +152,21 @@ public class AjudaActivity extends AppCompatActivity {
         carregar();
     }
 
+    // O usuário já permitiu a localização (precisa ou aproximada)?
+    private boolean temPermissaoLocalizacao() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
     // Mostra a rodinha e carrega a página
     private void carregar() {
         deuErro = false;
         layoutErroAjuda.setVisibility(View.GONE);
         webAjuda.setVisibility(View.INVISIBLE);
         progressAjuda.setVisibility(View.VISIBLE);
-        webAjuda.loadUrl(URL_AJUDA);
+        webAjuda.loadUrl(urlPagina);
     }
 
     // Esconde a página e a rodinha e mostra a mensagem de erro com o botão Tentar novamente

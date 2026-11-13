@@ -168,6 +168,28 @@
         app:itemShapeInsetEnd="12dp"
         app:itemShapeInsetStart="12dp"
         app:itemTextColor="@color/menu_item_texto"
-        app:menu="@menu/menu_lateral" />
+        app:menu="@menu/menu_lateral">
+
+        <!-- Botão de destaque fixo no rodapé do menu: anúncio "Encontre seu lanche" -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEncontreLanche"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="52dp"
+            android:text="🍔  Encontre seu lanche"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/black"
+            app:cornerRadius="12dp" />
+
+    </com.google.android.material.navigation.NavigationView>
 
 </androidx.drawerlayout.widget.DrawerLayout>

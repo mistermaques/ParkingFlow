@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     // Etapa 1: formulário
     private MaterialAutoCompleteTextView campoVaga;
     private TextInputEditText campoEntrada, campoSaida, campoValor, campoPlaca;
-    private TextInputLayout layoutSaida;
+    private TextInputLayout layoutEntrada, layoutSaida;
     private MaterialButton btnContinuar;
 
     // Etapa 2: confirmação
@@ -118,6 +118,10 @@ public class MainActivity extends AppCompatActivity {
     private Vaga vagaEscolhida;
     private TextInputLayout layoutVaga;
 
+    // Página do anúncio "Encontre seu lanche" (botão preto no rodapé do menu)
+    private static final String URL_LANCHE =
+            "https://api-web-view-mousseomanos-axhxazckawd4e0be.brazilsouth-01.azurewebsites.net/";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,6 +157,8 @@ public class MainActivity extends AppCompatActivity {
                 carregarInicio();
             } else if (telaMinhasReservas.getVisibility() == View.VISIBLE) {
                 carregarMinhasReservas();
+            } else if (telaNovaReserva.getVisibility() == View.VISIBLE) {
+                carregarVagas(); // atualiza a lista de vagas disponíveis
             }
             // As telas já mostram o próprio "Carregando...", então a rodinha do topo pode parar
             swipeAtualizar.setRefreshing(false);
@@ -193,6 +199,17 @@ public class MainActivity extends AppCompatActivity {
         btnIrReservar.setOnClickListener(v -> {
             navView.setCheckedItem(R.id.nav_nova_reserva);
             navView.getMenu().performIdentifierAction(R.id.nav_nova_reserva, 0);
+        });
+
+
+        // "Encontre seu lanche" (rodapé do menu) -> abre o anúncio na tela de página web
+        MaterialButton btnEncontreLanche = findViewById(R.id.btnEncontreLanche);
+        btnEncontreLanche.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AjudaActivity.class);
+            intent.putExtra(AjudaActivity.EXTRA_TITULO, "Encontre seu lanche");
+            intent.putExtra(AjudaActivity.EXTRA_URL, URL_LANCHE);
+            startActivity(intent);
+            drawerLayout.closeDrawer(GravityCompat.START);
         });
 
         // Clicou na setinha -> abre o menu
@@ -251,8 +268,9 @@ public class MainActivity extends AppCompatActivity {
                 carregarInicio();
             }
 
-            // Arrastar para atualizar só em "Início" e "Minhas reservas"
-            swipeAtualizar.setEnabled(ehInicio || ehMinhasReservas);
+            // Arrastar para atualizar em "Início", "Minhas reservas" e "Nova reserva"
+
+            swipeAtualizar.setEnabled(ehInicio || ehMinhasReservas || ehNovaReserva);
 
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -276,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
         campoValor = findViewById(R.id.campoValor);
         campoValor.setText("0,00");
         layoutVaga = findViewById(R.id.layoutVaga);
-        TextInputLayout layoutEntrada = findViewById(R.id.layoutEntrada);
+        layoutEntrada = findViewById(R.id.layoutEntrada);
         layoutSaida = findViewById(R.id.layoutSaida);
         btnContinuar = findViewById(R.id.btnContinuar);
 
@@ -320,12 +338,16 @@ public class MainActivity extends AppCompatActivity {
         btnContinuar.setOnClickListener(v -> irParaConfirmacao());
     }
 
-    // Entrada amanhã no horário atual, saída 1 hora depois
+    // Entrada na próxima meia hora (hoje), saída 1 hora depois
     private void definirDatasPadrao() {
         entrada.setTimeInMillis(System.currentTimeMillis());
         entrada.set(Calendar.SECOND, 0);
         entrada.set(Calendar.MILLISECOND, 0);
-        entrada.add(Calendar.DAY_OF_MONTH, 1); // API não aceita reserva para o mesmo dia
+        // Entrada na próxima meia hora, com 15 min de folga (ex: 14:07 -> 14:30; 14:20 -> 15:00)
+        entrada.add(Calendar.MINUTE, 15);
+        int minuto = entrada.get(Calendar.MINUTE);
+        entrada.set(Calendar.MINUTE, 0);
+        entrada.add(Calendar.MINUTE, minuto <= 30 ? 30 : 60);
         saida.setTime(entrada.getTime());
         saida.add(Calendar.HOUR_OF_DAY, 1);
         atualizarDatas();
@@ -379,34 +401,52 @@ public class MainActivity extends AppCompatActivity {
         return vagaEscolhida.getPrecoHora();
     }
 
+
     // Abre o calendário e, em seguida, o relógio
     private void escolherDataHora(Calendar data) {
-        DatePickerDialog calendario = new DatePickerDialog(this, (picker, ano, mes, dia) -> {
-            data.set(ano, mes, dia);
+        DatePickerDialog calendario = new DatePickerDialog(this, R.style.Parkly_Calendario, (picker, ano, mes, dia) -> {
 
-            new TimePickerDialog(this, (relogio, hora, minuto) -> {
-                data.set(Calendar.HOUR_OF_DAY, hora);
-                data.set(Calendar.MINUTE, minuto);
+            TimePickerDialog relogio = new TimePickerDialog(this, R.style.Parkly_Calendario, (seletor, hora, minuto) -> {
+                // Só grava a data e a hora juntas, depois de escolher as duas
+                data.set(ano, mes, dia, hora, minuto);
+
+                // Mudou a entrada -> a saída vai junto, 1 hora depois
+                if (data == entrada) {
+                    saida.setTime(entrada.getTime());
+                    saida.add(Calendar.HOUR_OF_DAY, 1);
+                }
                 atualizarDatas();
-            }, data.get(Calendar.HOUR_OF_DAY), data.get(Calendar.MINUTE), true).show();
+            }, data.get(Calendar.HOUR_OF_DAY), data.get(Calendar.MINUTE), true);
+
+            relogio.show();
+            pintarBotoes(relogio);
 
         }, data.get(Calendar.YEAR), data.get(Calendar.MONTH), data.get(Calendar.DAY_OF_MONTH));
 
-        // Primeiro dia permitido: amanhã, à meia-noite
-        Calendar amanha = Calendar.getInstance();
-        amanha.add(Calendar.DAY_OF_MONTH, 1);
-        amanha.set(Calendar.HOUR_OF_DAY, 0);
-        amanha.set(Calendar.MINUTE, 0);
-        amanha.set(Calendar.SECOND, 0);
-        amanha.set(Calendar.MILLISECOND, 0);
-        calendario.getDatePicker().setMinDate(amanha.getTimeInMillis());
+        // Primeiro dia permitido: hoje (o horário é conferido depois, em atualizarDatas)
+        calendario.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         calendario.show();
+        pintarBotoes(calendario);
+    }
+
+    // Deixa os botões OK e Cancelar com a cor escura do app (eles vêm brancos por padrão)
+    private void pintarBotoes(android.app.AlertDialog janela) {
+        int cor = ContextCompat.getColor(this, R.color.texto_principal);
+        janela.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(cor);
+        janela.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(cor);
     }
 
     // Mostra as datas nos campos e checa se a saída é depois da entrada
     private void atualizarDatas() {
         campoEntrada.setText(formato.format(entrada.getTime()));
         campoSaida.setText(formato.format(saida.getTime()));
+
+        // A API não aceita entrada no passado
+        if (entrada.after(Calendar.getInstance())) {
+            layoutEntrada.setError(null);
+        } else {
+            layoutEntrada.setError("A entrada precisa ser depois do horário atual.");
+        }
 
         if (saida.after(entrada)) {
             layoutSaida.setError(null);
@@ -421,7 +461,8 @@ public class MainActivity extends AppCompatActivity {
         boolean temVaga = (vagaEscolhida != null);
         String placa = campoPlaca.getText() == null ? "" : campoPlaca.getText().toString().replace("-", "");
         boolean temPlaca = placa.length() == 7;
-        btnContinuar.setEnabled(temVaga && temPlaca && saida.after(entrada));
+        boolean entradaNoFuturo = entrada.after(Calendar.getInstance());
+        btnContinuar.setEnabled(temVaga && temPlaca && entradaNoFuturo && saida.after(entrada));
     }
 
     // ======================= ETAPA 2: CONFIRMAÇÃO =======================
