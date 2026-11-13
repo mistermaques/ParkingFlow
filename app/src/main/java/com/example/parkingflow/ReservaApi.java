@@ -1,12 +1,14 @@
 package com.example.parkingflow;
 
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
@@ -24,6 +26,10 @@ public interface ReservaApi {
     // GET /reservas/usuario/{usuarioId} -> lista as reservas de um usuário
     @GET("reservas/usuario/{usuarioId}")
     Call<List<Reserva>> listarPorUsuario(@Path("usuarioId") long usuarioId);
+
+    // PATCH /reservas/{id}/cancelar -> cancela uma reserva PENDENTE, informando um motivo
+    @PATCH("reservas/{id}/cancelar")
+    Call<Reserva> cancelarReserva(@Path("id") long id, @Body Map<String, String> corpo);
 
     // Monta o Retrofit pronto para uso
     static ReservaApi criar() {

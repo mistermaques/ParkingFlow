@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tela de Ajuda: barra com seta de voltar + página do FAQ (WebView) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <!-- Barra do topo com a seta de voltar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarAjuda"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        app:navigationContentDescription="Voltar"
+        app:navigationIcon="@drawable/ic_voltar"
+        app:title="Ajuda"
+        app:titleTextColor="@color/texto_principal" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/borda" />
+
+    <!-- Área da página: WebView, carregamento e erro ficam um em cima do outro -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- A página do FAQ -->
+        <WebView
+            android:id="@+id/webAjuda"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Rodinha enquanto a página carrega -->
+        <ProgressBar
+            android:id="@+id/progressAjuda"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/texto_principal" />
+
+        <!-- Mensagem de erro com botão para tentar de novo (começa escondida) -->
+        <LinearLayout
+            android:id="@+id/layoutErroAjuda"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Não foi possível carregar a ajuda."
+                android:textColor="@color/texto_principal"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="Confira sua conexão e tente novamente."
+                android:textColor="@color/texto_secundario"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTentarNovamente"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="44dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:text="Tentar novamente"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                app:backgroundTint="@color/botao_fundo"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+
+    </FrameLayout>
+</LinearLayout>

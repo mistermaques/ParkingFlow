@@ -20,6 +20,8 @@ public class Reserva {
     private String createdAt;
     private String checkinAt;
     private String checkoutAt;
+    private String motivoCancelamento;
+    private String canceladaAt;
 
     // Construtor usado para criar uma nova reserva no app
     public Reserva(Long usuarioId, String placaVeiculo, Long vagaId, String nomeVaga,
@@ -44,4 +46,6 @@ public class Reserva {
     public String getDataFim() { return dataFim; }
     public Double getPrecoVaga() { return precoVaga; }
     public String getCreatedAt() { return createdAt; }
+    public String getMotivoCancelamento() { return motivoCancelamento; }
+    public String getCanceladaAt() { return canceladaAt; }
 }

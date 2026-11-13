@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-
+<!-- giro de tela -->
     <!-- ===== Card "Vagas agora" ===== -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"

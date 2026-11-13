@@ -3,8 +3,14 @@ package com.example.parkingflow;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -23,9 +29,15 @@ import androidx.core.view.GravityCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.progressindicator.CircularProgressIndicatorSpec;
 import com.google.android.material.progressindicator.IndeterminateDrawable;
@@ -34,6 +46,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +58,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
+
+    // Usuário logado (ID e nome entregues pela tela de login)
+    private long usuarioId;
+    private String nomeUsuario;
 
     // Menu, títulos e áreas da tela
     private DrawerLayout drawerLayout;
@@ -71,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
     // Minhas reservas
     private View telaMinhasReservas, progressReservas;
     private TextView txtReservasMensagem;
-    private LinearLayout listaReservas;
+    private RecyclerView listaReservas;
+    private ReservaAdapter adaptadorReservas;
 
 
     // Tela Início
@@ -102,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Quem entrou: dados vindos da LoginActivity
+        usuarioId = getIntent().getLongExtra(LoginActivity.EXTRA_USUARIO_ID, 1L);
+        nomeUsuario = getIntent().getStringExtra(LoginActivity.EXTRA_NOME_USUARIO);
+        if (nomeUsuario == null) nomeUsuario = "Motorista";
 
         configurarMenu();
         configurarFormulario();
@@ -144,6 +169,11 @@ public class MainActivity extends AppCompatActivity {
         progressReservas = findViewById(R.id.progressReservas);
         txtReservasMensagem = findViewById(R.id.txtReservasMensagem);
         listaReservas = findViewById(R.id.listaReservas);
+        // Lista em RecyclerView: um card por reserva, preenchido pelo preencherCard()
+        listaReservas.setLayoutManager(new LinearLayoutManager(this));
+        adaptadorReservas = new ReservaAdapter(this::preencherCard);
+        listaReservas.setAdapter(adaptadorReservas);
+        configurarArrasteCancelar();
         telaInicio = findViewById(R.id.telaInicio);
         layoutProximaReserva = findViewById(R.id.layoutProximaReserva);
         txtResumoTotal = findViewById(R.id.txtResumoTotal);
@@ -171,10 +201,24 @@ public class MainActivity extends AppCompatActivity {
         // Clicou em um item do menu -> troca o conteúdo e fecha o menu
         navView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
+
+            // Sair -> volta para o login e fecha esta tela
+            if (id == R.id.nav_sair) {
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
+                return true;
+            }
+
+            // Ajuda -> abre a tela da página de ajuda (FAQ), sem trocar a tela atual
+            if (id == R.id.nav_ajuda) {
+                startActivity(new Intent(this, AjudaActivity.class));
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return false; // false: o menu continua marcando a tela em que você estava
+            }
             boolean ehNovaReserva = (id == R.id.nav_nova_reserva);
 
             if (id == R.id.nav_inicio) {
-                mostrarTela("INÍCIO", "Olá, Sophia", "Veja um resumo das suas reservas.");
+                mostrarTela("INÍCIO", "Olá, " + nomeUsuario, "Veja um resumo das suas reservas.");
             } else if (ehNovaReserva) {
                 mostrarTela("RESERVAS", "Reserve sua vaga", "Escolha quando e onde você vai estacionar.");
             } else if (id == R.id.nav_minhas_reservas) {
@@ -185,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
             indicadorEtapas.setVisibility(ehNovaReserva ? View.VISIBLE : View.GONE);
             if (ehNovaReserva) {
                 irParaDetalhes();
+                carregarVagas(); // sempre busca a lista atualizada de vagas
             } else {
                 telaNovaReserva.setVisibility(View.GONE);
                 telaConfirmacao.setVisibility(View.GONE);
@@ -483,7 +528,7 @@ public class MainActivity extends AppCompatActivity {
 
         // usuarioId fixo até existir a User API; vaga, nome e preço vêm da vaga escolhida
         Reserva nova = new Reserva(
-                1L,
+                usuarioId,
                 placa,
                 vagaEscolhida.getId(),
                 vagaEscolhida.getNomeVaga(),
@@ -607,7 +652,7 @@ public class MainActivity extends AppCompatActivity {
         layoutProximaReserva.setVisibility(View.GONE);
 
         // usuarioId fixo até existir a User API
-        api.listarPorUsuario(1L).enqueue(new Callback<List<Reserva>>() {
+        api.listarPorUsuario(usuarioId).enqueue(new Callback<List<Reserva>>() {
             @Override
             public void onResponse(Call<List<Reserva>> call, Response<List<Reserva>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
@@ -655,10 +700,10 @@ public class MainActivity extends AppCompatActivity {
     private void carregarMinhasReservas() {
         progressReservas.setVisibility(View.VISIBLE);
         txtReservasMensagem.setVisibility(View.GONE);
-        listaReservas.removeAllViews();
+        adaptadorReservas.atualizar(new ArrayList<>());
 
         // usuarioId fixo até existir a User API
-        api.listarPorUsuario(1L).enqueue(new Callback<List<Reserva>>() {
+        api.listarPorUsuario(usuarioId).enqueue(new Callback<List<Reserva>>() {
             @Override
             public void onResponse(Call<List<Reserva>> call, Response<List<Reserva>> response) {
                 progressReservas.setVisibility(View.GONE);
@@ -677,9 +722,7 @@ public class MainActivity extends AppCompatActivity {
                 // Mais recentes primeiro (maior id no topo)
                 reservas.sort((a, b) -> Long.compare(b.getId(), a.getId()));
 
-                for (Reserva reserva : reservas) {
-                    listaReservas.addView(criarCardReserva(reserva));
-                }
+                adaptadorReservas.atualizar(reservas);
             }
 
             @Override
@@ -690,15 +733,140 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Arrastar um card PENDENTE para a esquerda -> pede para cancelar a reserva
+    private void configurarArrasteCancelar() {
+        float dp = getResources().getDisplayMetrics().density;
+        Paint pinturaFundo = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pinturaFundo.setColor(Color.parseColor("#DC2626"));
+        Drawable lixeira = ContextCompat.getDrawable(this, R.drawable.ic_lixeira);
+
+        ItemTouchHelper.SimpleCallback gesto = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+            // Só reservas PENDENTE podem ser arrastadas (a API só cancela essas)
+            @Override
+            public int getSwipeDirs(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder holder) {
+                int posicao = holder.getBindingAdapterPosition();
+                if (posicao == RecyclerView.NO_POSITION) return 0;
+                Reserva reserva = adaptadorReservas.getReserva(posicao);
+                return "PENDENTE".equals(reserva.getStatus()) ? ItemTouchHelper.LEFT : 0;
+            }
+
+            // Não usamos arrastar para reordenar a lista
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder origem,
+                                  @NonNull RecyclerView.ViewHolder destino) {
+                return false;
+            }
+
+            // Soltou o card depois de arrastar o suficiente
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder holder, int direcao) {
+                confirmarCancelamento(holder.getBindingAdapterPosition());
+            }
+
+            // Desenha o fundo vermelho com a lixeira por trás do card enquanto ele é arrastado
+            @Override
+            public void onChildDraw(@NonNull Canvas canvas, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder holder, float dX, float dY,
+                                    int estado, boolean arrastando) {
+                View card = holder.itemView;
+                if (dX < 0) {
+                    RectF fundo = new RectF(card.getRight() + dX, card.getTop(), card.getRight(), card.getBottom());
+                    canvas.drawRoundRect(fundo, 12 * dp, 12 * dp, pinturaFundo);
+
+                    if (lixeira != null) {
+                        int tamanho = (int) (24 * dp);
+                        int direita = card.getRight() - (int) (24 * dp);
+                        int topo = card.getTop() + (card.getHeight() - tamanho) / 2;
+                        lixeira.setBounds(direita - tamanho, topo, direita, topo + tamanho);
+                        lixeira.draw(canvas);
+                    }
+                }
+                super.onChildDraw(canvas, recyclerView, holder, dX, dY, estado, arrastando);
+            }
+        };
+
+        new ItemTouchHelper(gesto).attachToRecyclerView(listaReservas);
+    }
+
+    // Abre a janela de confirmação do cancelamento, com o campo de motivo
+    private void confirmarCancelamento(int posicao) {
+        if (posicao == RecyclerView.NO_POSITION) return;
+        Reserva reserva = adaptadorReservas.getReserva(posicao);
+
+        View conteudo = LayoutInflater.from(this).inflate(R.layout.dialogo_cancelamento, null);
+        TextInputEditText campoMotivo = conteudo.findViewById(R.id.campoMotivo);
+
+        new MaterialAlertDialogBuilder(this, R.style.Parkly_Dialogo)
+                .setBackground(ContextCompat.getDrawable(this, R.drawable.bg_dialogo))
+                .setTitle("Cancelar reserva?")
+                .setMessage("Reserva #" + reserva.getId() + " da vaga " + reserva.getNomeVaga()
+                        + "\nEntrada: " + formatarDataApi(reserva.getDataInicio()))
+                .setView(conteudo)
+                // Desistiu -> card volta ao lugar
+                .setNegativeButton("Voltar", (janela, botao) -> adaptadorReservas.restaurar(posicao))
+                .setOnCancelListener(janela -> adaptadorReservas.restaurar(posicao))
+                // Confirmou -> envia para a API
+                .setPositiveButton("Cancelar reserva", (janela, botao) -> {
+                    String motivo = campoMotivo.getText() == null ? "" : campoMotivo.getText().toString().trim();
+                    if (motivo.isEmpty()) motivo = "Cancelada pelo motorista pelo app";
+                    enviarCancelamento(posicao, reserva, motivo);
+                })
+                .show()
+                .getButton(DialogInterface.BUTTON_POSITIVE)
+                .setTextColor(Color.parseColor("#DC2626"));
+    }
+
+    // Chama PATCH /reservas/{id}/cancelar e atualiza o card com a resposta
+    private void enviarCancelamento(int posicao, Reserva reserva, String motivo) {
+        adaptadorReservas.restaurar(posicao); // card volta para a lista enquanto a API responde
+
+        Map<String, String> corpo = new HashMap<>();
+        corpo.put("motivo", motivo);
+
+        api.cancelarReserva(reserva.getId(), corpo).enqueue(new Callback<Reserva>() {
+            @Override
+            public void onResponse(Call<Reserva> call, Response<Reserva> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Se a lista não mudou enquanto esperava, troca só o card; senão recarrega tudo
+                    boolean mesmaPosicao = posicao < adaptadorReservas.getItemCount()
+                            && adaptadorReservas.getReserva(posicao).getId().equals(reserva.getId());
+                    if (mesmaPosicao) {
+                        adaptadorReservas.substituir(posicao, response.body());
+                    } else {
+                        carregarMinhasReservas();
+                    }
+                    Toast.makeText(MainActivity.this,
+                            "Reserva #" + reserva.getId() + " cancelada.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // A API manda o motivo da recusa em texto
+                    String detalhe = "";
+                    try {
+                        if (response.errorBody() != null) detalhe = response.errorBody().string();
+                    } catch (Exception e) {
+                        detalhe = "erro " + response.code();
+                    }
+                    Toast.makeText(MainActivity.this,
+                            "Não foi possível cancelar: " + detalhe, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Reserva> call, Throwable t) {
+                Toast.makeText(MainActivity.this,
+                        "Sem conexão com o servidor. Tente novamente.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     // Mostra a mensagem de lista vazia ou de erro
     private void mostrarMensagemReservas(String mensagem) {
         txtReservasMensagem.setText(mensagem);
         txtReservasMensagem.setVisibility(View.VISIBLE);
     }
 
-    // Cria uma cópia do item_reserva.xml e preenche com os dados de uma reserva
-    private View criarCardReserva(Reserva reserva) {
-        View card = LayoutInflater.from(this).inflate(R.layout.item_reserva, listaReservas, false);
+    // Preenche um card (item_reserva.xml) com os dados de uma reserva - usado pelo ReservaAdapter
+    private void preencherCard(View card, Reserva reserva) {
 
         ((TextView) card.findViewById(R.id.txtItemVaga)).setText("Vaga " + reserva.getNomeVaga());
         ((TextView) card.findViewById(R.id.txtItemId)).setText("Reserva #" + reserva.getId());
@@ -710,7 +878,7 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) card.findViewById(R.id.txtItemTotal)).setText(total == null ? "-" : formatarDinheiro(total));
 
         pintarStatus(card.findViewById(R.id.txtItemStatus), reserva.getStatus());
-        return card;
+
     }
 
     // Texto e cores da etiqueta conforme o status

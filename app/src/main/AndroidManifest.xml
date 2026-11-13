@@ -13,8 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Parkingflow">
 
+        <!-- Primeira tela ao abrir o app -->
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,6 +23,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Tela principal: só é aberta pelo login -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- Tela de Ajuda (WebView com o FAQ) -->
+        <activity
+            android:name=".AjudaActivity"
+            android:exported="false" />
+
     </application>
+
 
 </manifest>

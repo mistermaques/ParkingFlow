@@ -26,4 +26,12 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- Janelas (diálogos): sempre claras, mesmo com o celular no modo escuro -->
+    <style name="Parkly.Dialogo" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/texto_principal</item>
+        <item name="colorPrimary">@color/texto_principal</item>
+        <item name="android:textColorPrimary">@color/texto_principal</item>
+        <item name="android:textColorSecondary">@color/texto_secundario</item>
+    </style>
 </resources>

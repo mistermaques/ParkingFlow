@@ -139,11 +139,12 @@
                         android:textSize="14sp"
                         android:visibility="gone" />
 
-                    <LinearLayout
+                    <!-- Lista de reservas (RecyclerView permite o gesto de arrastar) -->
+                    <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/listaReservas"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical" />
+                        android:nestedScrollingEnabled="false" />
 
                 </LinearLayout>
 
