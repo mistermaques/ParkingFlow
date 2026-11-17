@@ -42,6 +42,8 @@ O app consome duas APIs REST hospedadas no Azure: a **API de Vagas** e a **API d
 | Finalizada | ⚪ Cinza |
 | Cancelada | 🔴 Vermelho |
 
+- **Cancelamento:** arrastar um card **Pendente** para a esquerda abre a confirmação, com campo opcional de motivo.
+
 ### Geral
 - **Menu lateral recolhível** (abre pela setinha no topo ou arrastando da borda esquerda).
 - **Arrastar para atualizar** nas telas Início e Minhas reservas.
@@ -57,6 +59,7 @@ O app consome duas APIs REST hospedadas no Azure: a **API de Vagas** e a **API d
 | **XML Layouts** (Views) | Construção das telas |
 | **Material Components** | Campos, botões, cards, menu lateral |
 | **Retrofit 2.11** + **Gson** | Comunicação com as APIs REST e conversão de JSON |
+| **AndroidX Lifecycle** (ViewModel + LiveData) | Arquitetura MVVM |
 | **DrawerLayout / NavigationView** | Menu lateral |
 | **SwipeRefreshLayout** | Gesto de arrastar para atualizar |
 | **Gradle (Kotlin DSL)** | Build do projeto |
@@ -85,8 +88,39 @@ Repositório: [mtsnobrega/x-reserva-api](https://github.com/mtsnobrega/x-reserva
 |---|---|---|
 | `POST` | `/reservas/nova-reserva` | Criação da reserva (botão Confirmar) |
 | `GET` | `/reservas/usuario/{usuarioId}` | Minhas reservas e próxima reserva da tela Início |
+| `PATCH` | `/reservas/{id}/cancelar` | Cancelamento de reserva pendente |
 
-Os endereços das APIs ficam nas interfaces `VagaApi.java` e `ReservaApi.java`, na constante `URL_BASE`.
+Os endereços das APIs ficam nas interfaces `api/VagaApi.java` e `api/ReservaApi.java`, na constante `URL_BASE`. As páginas web abertas no app ficam em `util/Links.java`.
+
+---
+
+## 🏛️ Arquitetura (MVVM)
+
+O app segue o padrão **MVVM (Model – View – ViewModel)**:
+
+```
+View (Activity)  ──observa──▶  ViewModel  ──pede dados──▶  Repository  ──▶  API (Retrofit)
+     │                             │                           │
+     └── repassa cliques ──────────┘                           └── devolve um Resultado
+```
+
+| Camada | Responsabilidade | Classes |
+|---|---|---|
+| **Model** | Dados do app (espelham o JSON das APIs) | `Reserva`, `Vaga`, `ResumoVagas`, `Usuario` |
+| **Repository** | Único ponto de acesso aos dados (APIs em `api/`); transforma a resposta em `Resultado` (carregando, sucesso ou erro) | `ReservaRepository`, `VagaRepository`, `UsuarioRepository`, `RepositorioBase`, `Resultado` |
+| **ViewModel** | Regras de negócio e estado das telas, expostos por `LiveData` | `LoginViewModel`, `InicioViewModel`, `NovaReservaViewModel`, `MinhasReservasViewModel` |
+| **View** | Só exibe o que o ViewModel manda e repassa as ações do usuário | `LoginActivity`, `MainActivity`, `AjudaActivity`, `ReservaAdapter`, `ArrasteParaCancelar` |
+
+Benefícios na prática:
+- As Activities não chamam mais as APIs nem guardam regras (validação, cálculo do total, próxima reserva etc.).
+- O **ViewModel sobrevive à rotação da tela**: o formulário de nova reserva não perde os dados ao girar o celular.
+- Quando a API de usuários existir, só o `UsuarioRepository` precisa mudar.
+
+Cada camada fica em um pacote próprio (`model`, `view`, `viewmodel`, `repository`), mais `api` (rotas Retrofit) e `util` (formatação e links).
+
+O código **anterior ao MVVM** está guardado na pasta `old/`, na raiz do projeto, só para consulta (não é compilado).
+
+> A `AjudaActivity` (WebView) não tem ViewModel porque não possui dados nem regras de negócio: ela só exibe uma página.
 
 ---
 
@@ -96,12 +130,34 @@ Os endereços das APIs ficam nas interfaces `VagaApi.java` e `ReservaApi.java`, 
 app/src/main/
 ├── AndroidManifest.xml
 ├── java/com/example/parkingflow/
-│   ├── MainActivity.java     # Telas, navegação do menu e regras do app
-│   ├── Reserva.java          # Modelo de reserva (espelha o JSON da API)
-│   ├── ReservaApi.java       # Rotas da API de Reservas (Retrofit)
-│   ├── Vaga.java             # Modelo de vaga
-│   ├── VagaApi.java          # Rotas da API de Vagas (Retrofit)
-│   └── ResumoVagas.java      # Totais de vagas por status
+│   ├── model/                         # MODEL: dados do app
+│   │   ├── Reserva.java               # Reserva (espelha o JSON da API)
+│   │   ├── Vaga.java                  # Vaga
+│   │   ├── ResumoVagas.java           # Totais de vagas por status
+│   │   └── Usuario.java               # Usuário do app
+│   ├── api/                           # Rotas das APIs (Retrofit) e URL_BASE de cada uma
+│   │   ├── ReservaApi.java
+│   │   └── VagaApi.java
+│   ├── repository/                    # REPOSITORY: único acesso aos dados
+│   │   ├── Resultado.java             # Estado de uma chamada: carregando / sucesso / erro
+│   │   ├── RepositorioBase.java       # Converte a resposta do Retrofit em Resultado
+│   │   ├── ReservaRepository.java
+│   │   ├── VagaRepository.java
+│   │   └── UsuarioRepository.java     # Logins fixos (até existir a User API)
+│   ├── viewmodel/                     # VIEWMODEL: regras e estado de cada tela
+│   │   ├── LoginViewModel.java
+│   │   ├── InicioViewModel.java
+│   │   ├── NovaReservaViewModel.java
+│   │   └── MinhasReservasViewModel.java
+│   ├── view/                          # VIEW: telas e componentes visuais
+│   │   ├── LoginActivity.java
+│   │   ├── MainActivity.java          # Início, Nova reserva e Minhas reservas + menu
+│   │   ├── AjudaActivity.java         # Página web (Ajuda / Encontre seu lanche)
+│   │   ├── ReservaAdapter.java        # Cards de "Minhas reservas"
+│   │   └── ArrasteParaCancelar.java   # Gesto de arrastar para cancelar
+│   └── util/
+│       ├── Formatos.java              # Formatação de datas, dinheiro e números
+│       └── Links.java                 # Endereços das páginas web (WebView)
 └── res/
     ├── layout/
     │   ├── activity_main.xml       # Estrutura principal (menu + conteúdo)
@@ -153,7 +209,7 @@ curl -X POST https://api-xsquad-mts-asfmf9eyg4bsd8d0.brazilsouth-01.azurewebsite
 ## 📏 Regras de negócio
 
 - **Cobrança por hora iniciada:** cada hora começada é cobrada inteira. Exemplo: 2h30 de reserva em uma vaga de R$ 10,00/h custa **R$ 30,00** (3 horas). O app mostra uma prévia com essa regra, mas o valor oficial é sempre o calculado pela API.
-- **Reservas a partir do dia seguinte:** a API não aceita reservas para o mesmo dia, por isso o app já sugere a data de amanhã e bloqueia o dia atual no calendário.
+- **Entrada no futuro:** a API não aceita entrada no passado. O app sugere a próxima meia hora (com 15 min de folga) e avisa se o horário escolhido já passou.
 - **Vaga precisa existir e estar disponível:** ao criar uma reserva, a API de Reservas consulta a API de Vagas para validar a vaga e obter o nome e o preço.
 - **Sem conflito de horário:** a API não permite duas reservas da mesma vaga no mesmo período.
 
@@ -161,7 +217,7 @@ curl -X POST https://api-xsquad-mts-asfmf9eyg4bsd8d0.brazilsouth-01.azurewebsite
 
 ## 🚧 Limitações conhecidas e próximos passos
 
-- [ ] **Login e usuário real:** o usuário ainda é fixo (`usuarioId = 1`), até a criação da API de usuários.
+- [ ] **Login e usuário real:** os logins ainda são fixos no `UsuarioRepository` (usuários ID 1 e 4), até a criação da API de usuários.
 - [ ] **Autenticação nas APIs:** as rotas ainda não exigem autenticação.
 - [ ] **Mensagens de erro:** exibir erros da API em uma janela completa, em vez de mensagens curtas.
 - [ ] **Tempo de espera:** aumentar o tempo limite das requisições para quando o servidor do Azure demora a responder.

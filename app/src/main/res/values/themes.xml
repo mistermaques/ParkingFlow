@@ -13,4 +13,12 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <!-- Tela de abertura (splash): aparece enquanto o app abre, no lugar do símbolo do Android.
+         Fundo claro do app + logo escura; depois troca para o tema normal (Theme.Parkingflow). -->
+    <style name="Theme.Parkingflow.Abertura" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/fundo_app</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_abertura</item>
+        <item name="postSplashScreenTheme">@style/Theme.Parkingflow</item>
+    </style>
 </resources>

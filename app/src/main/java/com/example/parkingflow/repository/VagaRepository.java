@@ -1,4 +1,8 @@
-package com.example.parkingflow;
+package com.example.parkingflow.repository;
+
+import com.example.parkingflow.api.VagaApi;
+import com.example.parkingflow.model.ResumoVagas;
+import com.example.parkingflow.model.Vaga;
 
 import java.util.List;
 

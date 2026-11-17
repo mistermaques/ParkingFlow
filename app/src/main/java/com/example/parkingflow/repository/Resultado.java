@@ -1,4 +1,4 @@
-package com.example.parkingflow;
+package com.example.parkingflow.repository;
 
 // Representa o estado de uma chamada à API: carregando, deu certo (com o dado) ou deu erro (com a mensagem).
 // A tela observa isso para decidir se mostra a rodinha, os dados ou a mensagem de erro.

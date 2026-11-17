@@ -1,4 +1,4 @@
-package com.example.parkingflow;
+package com.example.parkingflow.repository;
 
 import retrofit2.Call;
 import retrofit2.Callback;

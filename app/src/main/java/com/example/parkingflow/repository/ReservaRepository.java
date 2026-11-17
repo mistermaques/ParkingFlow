@@ -1,4 +1,7 @@
-package com.example.parkingflow;
+package com.example.parkingflow.repository;
+
+import com.example.parkingflow.api.ReservaApi;
+import com.example.parkingflow.model.Reserva;
 
 import java.util.HashMap;
 import java.util.List;
